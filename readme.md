@@ -57,6 +57,13 @@ GCをOFFにしたとき'..'のほうが若干速く、GCがONの時string.format
 }
 ```
 
+## GCなしのみの実行結果
+
+`make gcoff2`の出力
+
+![](./output_2.svg)
+
+
 ## 実行例
 
 ```sh

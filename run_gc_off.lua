@@ -5,6 +5,33 @@
 flag_print = false
 
 function main()
+
+	print( dump_table( arg ) )
+	print( #arg )
+
+	-- コマンドライン引数を取得
+
+	-- epocの実行回数
+	local epoc_num = 10000
+
+	-- 1回のepocでの文字列連結処理実行回数
+	local itr = 1e4
+
+	local function Num(arg, i)
+		local num = tonumber(arg[i])
+		if num == nil then
+			print( "変換できませんでした。 : arg[".. i .."]")
+			os.exit(1)
+		end
+		return num
+	end
+
+	if #arg >= 2 then
+		epoc_num = Num(arg, 1)
+		itr      = Num(arg, 2)
+		print( string.format("epoc_num: %d, itr: %d", epoc_num, itr) )
+	end
+
 	-- 実行中のLuaのバージョンを出力
 	if flag_print then
 		print("\nLua version \t: " .. _VERSION)
@@ -15,10 +42,6 @@ function main()
 		end
 	end
 
-	-- epocの実行回数
-	local epoc_num = 100
-	-- 1回のepocでの文字列連結処理実行回数
-	local itr = 1e4
 
 	local ret = check( epoc_num, itr )
 
@@ -26,9 +49,38 @@ function main()
 	--print( dump_table( ret ) )
 
 	-- csv形式で出力する。
-	print( string.format( "%s,%s", "e_f", "e_d" ) )
+	-- print( string.format( "%s,%s", "e_f", "e_d" ) )
+	local text = ""
 	for i = 1, epoc_num do
-		print( string.format( "%f,%f", ret["e_f"][i], ret["e_d"][i] ) )
+		text = string.format( "%s%f,%f\n", text, ret["e_f"][i], ret["e_d"][i] )
+	end
+	if arg[3] == nil then
+		write_to_file(text, "optput.csv")
+	else
+		write_to_file(text, arg[3])
+	end
+
+	local ave_f, ave_d = 0, 0
+	for i = 1, epoc_num do
+		ave_f, ave_d = ave_f + ret["e_f"][i], ave_d + ret["e_d"][i]
+	end
+	ave_f, ave_d = ave_f / epoc_num, ave_d / epoc_num
+	print(string.format("average : ave_f = %f, ave_d = %f", ave_f, ave_d))
+
+	local percent = ( 1 - (ave_f / ave_d)) * 100
+	local ope = percent < 0 and "" or "+"
+	local percent_str = string.format("%s%.2f%%", ope, percent )
+	print(string.format(">> diff ratio '1 - string.format / ..' : %s\n", percent_str ))
+end
+
+function write_to_file(text, output_path)
+	local file = io.open(output_path, "w")
+	if file then
+		file:write(text)
+		file:close()
+		return true
+	else
+		return false, "Could not open file for writing."
 	end
 end
 
