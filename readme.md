@@ -10,22 +10,50 @@ GCの影響があるのでGCの使い方を変えながら比較した。
 
 ## 結論
 
+大差ないので、コーディング中に書きやすい方を使用すべき、という結論とする。  
+
 このベンチでの結論は、大きな性能差はない結果になった。  
+気持ちstring.formatが数%速いかもしれない。  
+感覚的には3%くらい速いかもしれない。気のせいかもしれない。  
+
 よって、コーディング中に書きやすい方を使用すべき、という結論とする。  
 
-強いて言えば、'..'のほうがGCに時間がかかっているように見える。  
+考察としては、
+* GCによってぶれが大きくなるように見える。
+* 強いて言えば、'..'がGCに時間がかかっているように見える。  
 GCをOFFにしたとき'..'のほうが若干速く、GCがONの時string.formatのほうが若干速いかもしれない。  
+実装を見ているわけではないので、これも気のせいかもしれない。  
 
-実行するたびに数%ぶれるので、このぶれが統計的に有意なのか計算するべきだと思われるが、  
-現状面倒で、というか数%くらいの有意性ならコーディング中に書きやすい方を使用すべきだと思うので、  
+* 実行するたびに数%ぶれるので、このぶれが統計的に有意なのか計算するべきだと思われるが、  
+現状面倒で、というか数%くらいの有意性ならコーディング中に書きやすい方を使用すべきだと思われるので、  
 そこまではやっていない。
 
+
+下記は何度か実行した際の出力。出力のキーの順序がランダムな出力になるのでソートしている。
 ```
-{  
-	["auto gc : ON, manual gc : OFF"]	 = +0.12%, +5.35%, +1.16%, -1.65%,  
-	["auto gc : ON, manual gc : ON"]	 = +4.85%, +0.16%, +2.54%, +2.03%,  
-	["auto gc : OFF, manual gc : ON"]	 = +1.66%, -1.18%, +1.98%, +8.20%,  
-	["auto gc : OFF, manual gc : OFF"]	 = +2.94%, -12.69%, -2.37%, +0.20%,  
+{
+	["auto gc : OFF, manual gc : OFF"]	 = +5.13%, +2.83%, +0.19%, +0.89%,
+	["auto gc : OFF, manual gc : ON"]	 = +4.17%, -1.40%, +2.92%, +3.08%,
+	["auto gc : ON, manual gc : OFF"]	 = +0.34%, -0.22%, -0.73%, +7.53%,
+	["auto gc : ON, manual gc : ON"]	 = -4.47%, +5.50%, -0.49%, +4.32%,
+}
+{
+	["auto gc : OFF, manual gc : OFF"]	 = +1.89%, +3.89%, +2.44%, +2.07%,
+	["auto gc : OFF, manual gc : ON"]	 = +2.76%, +1.03%, +3.69%, -3.08%,
+	["auto gc : ON, manual gc : OFF"]	 = +1.95%, +4.53%, -0.77%, -1.04%,
+	["auto gc : ON, manual gc : ON"]	 = +2.50%, -2.17%, +4.89%, +0.19%,
+}
+{
+	["auto gc : OFF, manual gc : OFF"]	 = +1.62%, +3.33%, +2.56%, -0.68%,
+	["auto gc : OFF, manual gc : ON"]	 = +2.35%, +1.31%, -0.05%, +2.45%,
+	["auto gc : ON, manual gc : OFF"]	 = +3.93%, -1.05%, +0.44%, -2.32%,
+	["auto gc : ON, manual gc : ON"]	 = +1.75%, +0.25%, -0.99%, +6.40%,
+}
+{
+	["auto gc : OFF, manual gc : OFF"]	 = +2.33%, +2.08%, +1.95%, +1.75%,
+	["auto gc : OFF, manual gc : ON"]	 = +1.03%, +0.83%, +1.25%, +2.25%,
+	["auto gc : ON, manual gc : OFF"]	 = +1.72%, +4.26%, +0.66%, +0.73%,
+	["auto gc : ON, manual gc : ON"]	 = +2.10%, +3.09%, -0.46%, +10.60%,
 }
 ```
 
@@ -39,92 +67,92 @@ LuaJIT version : LuaJIT 2.1.0-beta3
 
 ---- auto gc : OFF, manual gc : OFF ----
 	-- check_auto_gc_off --
-	Time taken using 'string.format': 0.060961 s
-	Time taken using '..'           : 0.062806 s
-		>> itr: 100000    , diff ratio '1 - string.format / ..' : +2.94%
+	Time taken using 'string.format': 5.920056 s
+	Time taken using '..'           : 6.240452 s
+		>> itr: 10000000  , diff ratio '1 - string.format / ..' : +5.13%
 
 	-- check_auto_gc_off --
-	Time taken using 'string.format': 0.06562 s
-	Time taken using '..'           : 0.058232 s
-		>> itr: 100000    , diff ratio '1 - string.format / ..' : -12.69%
+	Time taken using 'string.format': 6.075694 s
+	Time taken using '..'           : 6.252761 s
+		>> itr: 10000000  , diff ratio '1 - string.format / ..' : +2.83%
 
 	-- check_auto_gc_off --
-	Time taken using 'string.format': 0.05931 s
-	Time taken using '..'           : 0.057937 s
-		>> itr: 100000    , diff ratio '1 - string.format / ..' : -2.37%
+	Time taken using 'string.format': 6.262879 s
+	Time taken using '..'           : 6.274652 s
+		>> itr: 10000000  , diff ratio '1 - string.format / ..' : +0.19%
 
 	-- check_auto_gc_off --
-	Time taken using 'string.format': 0.057028 s
-	Time taken using '..'           : 0.05714 s
-		>> itr: 100000    , diff ratio '1 - string.format / ..' : +0.20%
+	Time taken using 'string.format': 6.330412 s
+	Time taken using '..'           : 6.387298 s
+		>> itr: 10000000  , diff ratio '1 - string.format / ..' : +0.89%
 
 ---- auto gc : OFF, manual gc : ON ----
 	-- check_auto_gc_off --
-	Time taken using 'string.format': 0.056409 s
-	Time taken using '..'           : 0.057359 s
-		>> itr: 100000    , diff ratio '1 - string.format / ..' : +1.66%
+	Time taken using 'string.format': 6.244198 s
+	Time taken using '..'           : 6.51617 s
+		>> itr: 10000000  , diff ratio '1 - string.format / ..' : +4.17%
 
 	-- check_auto_gc_off --
-	Time taken using 'string.format': 0.058595 s
-	Time taken using '..'           : 0.05791 s
-		>> itr: 100000    , diff ratio '1 - string.format / ..' : -1.18%
+	Time taken using 'string.format': 6.462923 s
+	Time taken using '..'           : 6.373866 s
+		>> itr: 10000000  , diff ratio '1 - string.format / ..' : -1.40%
 
 	-- check_auto_gc_off --
-	Time taken using 'string.format': 0.055925 s
-	Time taken using '..'           : 0.057056 s
-		>> itr: 100000    , diff ratio '1 - string.format / ..' : +1.98%
+	Time taken using 'string.format': 6.274534 s
+	Time taken using '..'           : 6.463448 s
+		>> itr: 10000000  , diff ratio '1 - string.format / ..' : +2.92%
 
 	-- check_auto_gc_off --
-	Time taken using 'string.format': 0.056067 s
-	Time taken using '..'           : 0.061076 s
-		>> itr: 100000    , diff ratio '1 - string.format / ..' : +8.20%
+	Time taken using 'string.format': 6.159367 s
+	Time taken using '..'           : 6.35543 s
+		>> itr: 10000000  , diff ratio '1 - string.format / ..' : +3.08%
 
 ---- auto gc : ON, manual gc : OFF ----
 	-- check_auto_gc_on --
-	Time taken using 'string.format': 0.056755 s
-	Time taken using '..'           : 0.056823 s
-		>> itr: 100000    , diff ratio '1 - string.format / ..' : +0.12%
+	Time taken using 'string.format': 6.081184 s
+	Time taken using '..'           : 6.102026 s
+		>> itr: 10000000  , diff ratio '1 - string.format / ..' : +0.34%
 
 	-- check_auto_gc_on --
-	Time taken using 'string.format': 0.056282 s
-	Time taken using '..'           : 0.059466 s
-		>> itr: 100000    , diff ratio '1 - string.format / ..' : +5.35%
+	Time taken using 'string.format': 5.933152 s
+	Time taken using '..'           : 5.920213 s
+		>> itr: 10000000  , diff ratio '1 - string.format / ..' : -0.22%
 
 	-- check_auto_gc_on --
-	Time taken using 'string.format': 0.056767 s
-	Time taken using '..'           : 0.057433 s
-		>> itr: 100000    , diff ratio '1 - string.format / ..' : +1.16%
+	Time taken using 'string.format': 5.939865 s
+	Time taken using '..'           : 5.89684 s
+		>> itr: 10000000  , diff ratio '1 - string.format / ..' : -0.73%
 
 	-- check_auto_gc_on --
-	Time taken using 'string.format': 0.055856 s
-	Time taken using '..'           : 0.054951 s
-		>> itr: 100000    , diff ratio '1 - string.format / ..' : -1.65%
+	Time taken using 'string.format': 5.779544 s
+	Time taken using '..'           : 6.249923 s
+		>> itr: 10000000  , diff ratio '1 - string.format / ..' : +7.53%
 
 ---- auto gc : ON, manual gc : ON ----
 	-- check_auto_gc_on --
-	Time taken using 'string.format': 0.053236 s
-	Time taken using '..'           : 0.055948 s
-		>> itr: 100000    , diff ratio '1 - string.format / ..' : +4.85%
+	Time taken using 'string.format': 6.405276 s
+	Time taken using '..'           : 6.131237 s
+		>> itr: 10000000  , diff ratio '1 - string.format / ..' : -4.47%
 
 	-- check_auto_gc_on --
-	Time taken using 'string.format': 0.054517 s
-	Time taken using '..'           : 0.054606 s
-		>> itr: 100000    , diff ratio '1 - string.format / ..' : +0.16%
+	Time taken using 'string.format': 5.908229 s
+	Time taken using '..'           : 6.251782 s
+		>> itr: 10000000  , diff ratio '1 - string.format / ..' : +5.50%
 
 	-- check_auto_gc_on --
-	Time taken using 'string.format': 0.053759 s
-	Time taken using '..'           : 0.055158 s
-		>> itr: 100000    , diff ratio '1 - string.format / ..' : +2.54%
+	Time taken using 'string.format': 5.993292 s
+	Time taken using '..'           : 5.964141 s
+		>> itr: 10000000  , diff ratio '1 - string.format / ..' : -0.49%
 
 	-- check_auto_gc_on --
-	Time taken using 'string.format': 0.0552 s
-	Time taken using '..'           : 0.056341 s
-		>> itr: 100000    , diff ratio '1 - string.format / ..' : +2.03%
+	Time taken using 'string.format': 5.933977 s
+	Time taken using '..'           : 6.201935 s
+		>> itr: 10000000  , diff ratio '1 - string.format / ..' : +4.32%
 
 {
-	["auto gc : ON, manual gc : OFF"]	 = +0.12%, +5.35%, +1.16%, -1.65%,
-	["auto gc : ON, manual gc : ON"]	 = +4.85%, +0.16%, +2.54%, +2.03%,
-	["auto gc : OFF, manual gc : ON"]	 = +1.66%, -1.18%, +1.98%, +8.20%,
-	["auto gc : OFF, manual gc : OFF"]	 = +2.94%, -12.69%, -2.37%, +0.20%,
+	["auto gc : ON, manual gc : OFF"]	 = +0.34%, -0.22%, -0.73%, +7.53%,
+	["auto gc : OFF, manual gc : OFF"]	 = +5.13%, +2.83%, +0.19%, +0.89%,
+	["auto gc : ON, manual gc : ON"]	 = -4.47%, +5.50%, -0.49%, +4.32%,
+	["auto gc : OFF, manual gc : ON"]	 = +4.17%, -1.40%, +2.92%, +3.08%,
 }
 ```
